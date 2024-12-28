@@ -6,8 +6,8 @@ import Html.Attributes exposing (class, href, placeholder, readonly, style, valu
 import Html.Events exposing (onInput)
 import Json.Decode
 import Json.Encode
-import JsonPath exposing (Cursor, CursorOp(..), Error(..))
-import JsonPath.Extractor
+import JsonPath
+import JsonPath.Error exposing (Cursor, CursorOp(..), Error(..))
 
 
 
@@ -47,7 +47,7 @@ type alias OutputJson =
 
 type DemoError
     = JsonDecodeError Json.Decode.Error
-    | JsonPathError JsonPath.Error
+    | JsonPathError Error
 
 
 init : Model
@@ -58,7 +58,7 @@ init =
 
         initOutputJson =
             initInputJson
-                |> JsonPath.Extractor.run initPath
+                |> JsonPath.run initPath
                 |> Result.mapError JsonPathError
     in
     { path = initPath
@@ -132,14 +132,14 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         UpdatePath path ->
-            runExtractor path model.inputJson.raw
+            run path model.inputJson.raw
 
         UpdateRawInputJson rawInputJson ->
-            runExtractor model.path rawInputJson
+            run model.path rawInputJson
 
 
-runExtractor : String -> String -> Model
-runExtractor path rawInputJson =
+run : String -> String -> Model
+run path rawInputJson =
     let
         decodedInputJson =
             decodeRawJson rawInputJson
@@ -148,7 +148,7 @@ runExtractor path rawInputJson =
             case decodedInputJson of
                 Ok value ->
                     value
-                        |> JsonPath.Extractor.run path
+                        |> JsonPath.run path
                         |> Result.mapError JsonPathError
 
                 Err error ->
@@ -241,7 +241,7 @@ view model =
         , div [ class "subtitle is-4" ]
             [ text "Demo of the "
             , a [ href "https://github.com/sophiecollard/jsonpath/tree/main" ] [ text "sophiecollard/jsonpath" ]
-            , text " Elm package (version 1.0.0)"
+            , text " Elm package (version 2.0.0)"
             ]
         , div [ class "field" ]
             [ div [ class "label" ] [ text "Path" ]
